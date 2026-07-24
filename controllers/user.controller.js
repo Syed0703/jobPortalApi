@@ -1,0 +1,186 @@
+import { User } from "../models/user.model.js";
+import bcrypt from "bcryptjs"
+import jwt from "jsonwebtoken"
+
+
+// Register user function
+const regsterUser = async (req, res) => {
+    try {
+        const { fullName, email, phoneNumber, password, role } = req.body;
+        if(!fullName || !email || !phoneNumber || !password || !role) {
+            return res.status(400).json({
+                message: "Something is missing",
+                success: false
+            })
+        }
+
+        // Email verification
+        const user = await User.findOne({email});
+        if(user) {
+            return res.status(400).json({
+                message: "User already exist with this email.",
+                success: false
+            })
+        }
+
+        // Password Hashing
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Creating User
+        await User.create({
+            fullName,
+            email,
+            phoneNumber,
+            password: hashedPassword,
+            role
+        })
+        return res.status(201).json({
+            message: "Account created successfully.",
+            success: true
+        })
+    } catch (error) {
+        console.log(error);
+        
+    }
+}
+
+
+// Login function
+const login = async (req, res) => {
+    try {
+        const {email, password, role} = req.body;
+        if(!email || !password || !role) {
+            return res.status(400).json({
+                message: "Something is missing",
+                success: false
+            })
+        }
+
+        // Email verification
+        let user = await User.findOne({email});
+        if(!user) {
+            return res.status(400).json({
+                message: "Incorrect email or password",
+                success: false
+            })
+        }
+
+
+        // Password verification
+        const isPasswordMatch = await bcrypt.compare(password, user.password);
+        if(!isPasswordMatch) {
+            return res.status(400).json({
+                message: "Incorrect email or password",
+                success: false
+            })
+        }
+
+        //Check role is correct or not
+        if(role !== user.role) {
+            return res.status(400).json({
+                message: "Account doesn't exist with current role. ",
+                success: false
+            })
+        }
+
+        //Generate jwt Token
+        const tokenData = {
+            userId: user._id
+        }
+        const token = await jwt.sign(tokenData, process.env.SECRET_KEY, {expiresIn: '1d'});
+
+        user = {
+            id: user._id,
+            fullName: user.fullName,
+            email: user.email,
+            phoneNumber: user.phoneNumber,
+            role: user.role,
+            profile: user.profile
+        }
+
+        // Store jwtToken in cookie
+        return res.status(200).cookie("token", token, {
+            maxAge: 1*24*60*60*1000, 
+            httpOnly: true, 
+            sameSite: 'strict'
+        }).json({
+            message: `Welcome back ${user.fullName}`,
+            user,
+            success: true
+        })
+    } catch (error) {
+        console.log(error);
+        
+    }
+}
+
+
+// Logout function
+const logout = async (req, res) => {
+    try {
+        // Removing jwtToken from cookie
+        return res.status(200).cookie("token", "", {maxAge: 0}).json({
+            message: "Logged out successfully",
+            sucess: true
+        })
+    } catch (error) {
+        console.log(error);
+        
+    }
+}
+
+
+
+// Update Profile function
+const updateProfile = async () => {
+    try {
+        const {fullName, email, phoneNumber, bio, skills} = req.body;
+        const file = req.file;
+        if(!fullName || !email || !phoneNumber || !bio || !skills) {
+            return res.status(400).json({
+                message: "Something is missing.",
+                success: false
+            })
+        }
+
+        // Convert string to array
+        const skillsArray = skills.split(",");
+        const userId = req.id;  // Middleware authentication
+
+        let user = await User.findById(userId);
+        if(!user){
+            return res.status(400).json({
+                message: "User not found",
+                success: false
+            })
+        }
+
+        // Update data
+        user.fullName = fullName,
+        user.email = email,
+        user.phoneNumber = phoneNumber,
+        user.profile.bio = bio,
+        user.profile.skills = skillArray
+        // Resume comes here later
+
+        await user.save();
+
+        user = {
+            id: user._id,
+            fullName: user.fullName,
+            email: user.email,
+            phoneNumber: user.phoneNumber,
+            role: user.role,
+            profile: user.profile
+        }
+
+        return res.status(200).json({
+            message: "Profile updated successfully.",
+            user,
+            sucess: true
+        })
+    } catch (error) {
+        console.log(error);
+        
+    }
+}
