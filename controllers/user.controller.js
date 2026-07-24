@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken"
 
 
 // Register user function
-const regsterUser = async (req, res) => {
+const regster = async (req, res) => {
     try {
         const { fullName, email, phoneNumber, password, role } = req.body;
         if(!fullName || !email || !phoneNumber || !password || !role) {
@@ -132,19 +132,16 @@ const logout = async (req, res) => {
 
 
 // Update Profile function
-const updateProfile = async () => {
+const updateProfile = async (req, res) => {
     try {
         const {fullName, email, phoneNumber, bio, skills} = req.body;
         const file = req.file;
-        if(!fullName || !email || !phoneNumber || !bio || !skills) {
-            return res.status(400).json({
-                message: "Something is missing.",
-                success: false
-            })
-        }
 
         // Convert string to array
-        const skillsArray = skills.split(",");
+        let skillsArray;
+        if(skills) {
+            skillsArray = skills.split(",");
+        }
         const userId = req.id;  // Middleware authentication
 
         let user = await User.findById(userId);
@@ -156,11 +153,11 @@ const updateProfile = async () => {
         }
 
         // Update data
-        user.fullName = fullName,
-        user.email = email,
-        user.phoneNumber = phoneNumber,
-        user.profile.bio = bio,
-        user.profile.skills = skillArray
+        if(fullName) user.fullName = fullName
+        if(email) user.email = email
+        if(phoneNumber) user.phoneNumber = phoneNumber
+        if(bio) user.profile.bio = bio
+        if(skills) user.profile.skills = skillArray
         // Resume comes here later
 
         await user.save();
@@ -184,3 +181,6 @@ const updateProfile = async () => {
         
     }
 }
+
+
+export {regster, login, logout, updateProfile};
