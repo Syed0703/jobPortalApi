@@ -7,6 +7,14 @@ import userRoute from "./routes/user.route.js"
 import companyRoute from "./routes/company.route.js"
 import jobRoute from "./routes/job.routes.js"
 import applicationRoute from "./routes/application.route.js"
+import dns from 'node:dns';
+
+
+// Only override DNS when running on your local machine
+if (process.env.NODE_ENV !== 'production') {
+  dns.setDefaultResultOrder('ipv4first');
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+}
 
 dotenv.config({});
 
