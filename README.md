@@ -4,7 +4,7 @@
 
 > A modern, full-stack job portal designed to bridge the gap between job seekers and employers, streamlining the path from unemployment to employment.
 >
-> 🌐 **Live Demo:** [careerhub.vercel.app]()  
+> 🌐 **Live Demo:** [careerhub.vercel.app](https://careerhub-lac.vercel.app/)  
 📂 **Frontend Repo:** [github.com/Syed0703/careerHub_Frontend](https://github.com/Syed0703/careerHub_frontend)  
 ⚙️ **Backend Repo:** [github.com/Syed0703/careerHub_jobPortal_APi](https://github.com/Syed0703/careerHub_jobPortal_Api)
 
