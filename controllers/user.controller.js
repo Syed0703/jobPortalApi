@@ -130,7 +130,7 @@ const logout = async (req, res) => {
         // Removing jwtToken from cookie
         return res.status(200).cookie("token", "", {maxAge: 0}).json({
             message: "Logged out successfully",
-            sucess: true
+            success: true
         })
     } catch (error) {
         console.log(error);
